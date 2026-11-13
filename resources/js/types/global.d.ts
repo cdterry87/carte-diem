@@ -17,6 +17,8 @@ declare module '@inertiajs/core' {
             workspaces: Workspace[];
             unreadNotifications: number;
             sidebarOpen: boolean;
+            demo: { enabled: boolean; isDemoUser: boolean };
+            canRegister: boolean;
             [key: string]: unknown;
         };
     }

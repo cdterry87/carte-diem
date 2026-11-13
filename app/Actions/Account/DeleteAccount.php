@@ -16,10 +16,16 @@ class DeleteAccount
         private readonly OwnerDataPurger $purger,
     ) {}
 
-    public function handle(User $user): void
+    /**
+     * @param  bool  $force  Skip the shared-household check. Only the demo reset uses this, since
+     *                       it rebuilds the demo household from scratch anyway.
+     */
+    public function handle(User $user, bool $force = false): void
     {
-        DB::transaction(function () use ($user): void {
-            $this->assertDeletable($user);
+        DB::transaction(function () use ($user, $force): void {
+            if (! $force) {
+                $this->assertDeletable($user);
+            }
 
             Household::withTrashed()->where('owner_user_id', $user->id)->get()->each(function (Household $household): void {
                 $this->purger->purge($household);

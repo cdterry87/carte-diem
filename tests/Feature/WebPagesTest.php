@@ -214,20 +214,29 @@ it('toggles item favorites per user in scope only', function () {
     $this->actingAs(User::factory()->create())->post(route('products.favorite', $product))->assertNotFound();
 });
 
-it('renders every page with the realistic seeded data', function () {
+it('renders every page with the seeded demo data', function () {
+    config(['demo.email' => 'demo@example.com', 'demo.password' => 'password']);
     $this->seed();
-    $sam = User::query()->where('email', 'sam@cartediem.test')->sole();
-    $household = $sam->households()->sole();
-    $list = ShoppingList::query()->sole();
+    $demo = User::query()->where('is_demo', true)->sole();
+    $household = $demo->households()->sole();
+    $list = ShoppingList::query()->where('title', 'Weekly groceries')->sole();
 
-    $this->actingAs($sam)->withSession(['auth.password_confirmed_at' => time()]);
+    $this->actingAs($demo)->withSession(['auth.password_confirmed_at' => time()]);
 
-    $this->get(route('dashboard'))->assertOk()->assertInertia(fn (Assert $page) => $page->has('suggestions', 2)->where('suggestions.0.owner.uuid', $household->uuid));
-    $this->get(route('lists.show', $list))->assertOk()->assertInertia(fn (Assert $page) => $page->where('suggestions.0.reason', fn (string $reason) => str_contains($reason, 'every 9 days')));
+    $this->get(route('dashboard'))->assertOk()->assertInertia(fn (Assert $page) => $page
+        ->where('suggestions', fn ($suggestions) => count($suggestions) > 0)
+        ->where('suggestions.0.owner.uuid', $household->uuid));
+    $this->get(route('lists.show', $list))->assertOk()->assertInertia(fn (Assert $page) => $page
+        ->where('suggestions', fn ($suggestions) => collect($suggestions)->every(fn (array $suggestion): bool => $suggestion['reason'] !== '')));
+    $this->get(route('spending.index', ['household' => $household->uuid, 'months' => 6]))->assertOk()->assertInertia(fn (Assert $page) => $page
+        ->where('summary.currencies.0.by_category', fn ($categories) => count($categories) >= 5));
+    $this->get(route('spending.prices', ['household' => $household->uuid]))->assertOk()->assertInertia(fn (Assert $page) => $page
+        ->where('products', fn ($products) => collect($products)->pluck('name')->contains('Coffee')));
 
     foreach ([
         route('lists.index'),
         route('history.index'),
+        route('purchases.index', ['household' => $household->uuid]),
         route('households.show', $household),
         route('staples.index', ['household' => $household->uuid]),
         route('notifications.index'),

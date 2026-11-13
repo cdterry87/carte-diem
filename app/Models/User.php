@@ -32,6 +32,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property string|null $quiet_start
  * @property string|null $quiet_end
  * @property array<int, string>|null $dismissed_notices
+ * @property bool $is_demo
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -44,7 +45,7 @@ class User extends Authenticatable implements MustVerifyEmail
     use HasFactory, HasPublicUuid, Notifiable, TwoFactorAuthenticatable;
 
     /**
-     * @var array<string, string|null>
+     * @var array<string, string|bool|null>
      */
     protected $attributes = [
         'timezone' => 'UTC',
@@ -54,6 +55,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'two_factor_secret' => null,
         'two_factor_recovery_codes' => null,
         'two_factor_confirmed_at' => null,
+        'is_demo' => false,
     ];
 
     /**
@@ -68,6 +70,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
             'dismissed_notices' => 'array',
+            'is_demo' => 'boolean',
         ];
     }
 

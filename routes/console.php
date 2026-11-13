@@ -15,3 +15,4 @@ Artisan::command('notifications:send-digests', function (SendListActivityDigests
 
 Schedule::command('reminders:send')->hourly()->withoutOverlapping();
 Schedule::command('notifications:send-digests')->everyFiveMinutes()->withoutOverlapping();
+Schedule::command('demo:reset')->daily()->when(fn (): bool => (bool) config('demo.mode'));

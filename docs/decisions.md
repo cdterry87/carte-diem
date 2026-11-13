@@ -63,6 +63,14 @@ The rules Carte Diem follows, and why. Earlier versions of this file also covere
 - **Unverified accounts** can still delete themselves.
 - **The privacy policy** is a draft written to match the app's behavior, not legal advice. `LEGAL_*` settings fill in the entity, contact, and retention details, and unset values show as placeholders.
 
+## Demo mode
+
+- **For the portfolio site.** `DEMO_MODE` closes sign-up and adds a one-click demo login. The demo credentials stay on the server and never reach the page.
+- **One shared account,** marked `is_demo`. It cannot change its email or password, set up two-factor sign-in, delete itself, or send invitations, and password reset links are never sent to it. Everything else is undone by `demo:reset`, which deletes the demo account and builds it again daily, ending any open demo sessions.
+- **Fixed sample data,** not random, so every reset looks the same: one household, three stores, sixteen weekly shops with rising prices on a few staples, and lists in progress.
+- **`demo:reset` never takes over a real account.** It refuses when a regular account already uses the demo email, and `user:create` keeps that email free.
+- **`user:create`** adds verified accounts from the terminal. It always asks for the password, so it never lands in shell history.
+
 ## Technical choices
 
 - Laravel React starter kit (Fortify, Inertia 3, Wayfinder), with Pest for tests and Playwright with axe for end-to-end and accessibility checks.

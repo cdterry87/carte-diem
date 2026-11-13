@@ -133,6 +133,9 @@ jobs:
           npm run build
 
       - name: Prepare application
+        # The end-to-end tests sign up new users, which demo mode turns off.
+        env:
+          DEMO_MODE: 'false'
         run: |
           php artisan migrate --force
           php artisan serve --port=8000 > storage/logs/serve.log 2>&1 &

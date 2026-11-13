@@ -1,4 +1,4 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, router, usePage } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
@@ -8,18 +8,48 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { register } from '@/routes';
+import demo from '@/routes/demo';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 
 type Props = {
     status?: string;
     canResetPassword: boolean;
+    demoLogin: boolean;
 };
 
-export default function Login({ status, canResetPassword }: Props) {
+export default function Login({ status, canResetPassword, demoLogin }: Props) {
+    const { canRegister } = usePage().props;
+
     return (
         <>
             <Head title="Log in" />
+
+            {demoLogin && (
+                <section
+                    aria-labelledby="demo-title"
+                    className="mb-6 flex flex-col gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4"
+                >
+                    <div>
+                        <h2 id="demo-title" className="font-medium">
+                            Try the demo
+                        </h2>
+                        <p className="text-sm text-muted-foreground">
+                            Explore a sample household with a few months of
+                            lists, trips, and spending. The demo data resets
+                            daily.
+                        </p>
+                    </div>
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        className="w-full"
+                        onClick={() => router.post(demo.login.url())}
+                    >
+                        Log in as the demo user
+                    </Button>
+                </section>
+            )}
 
             <Form
                 {...store.form()}
@@ -89,12 +119,14 @@ export default function Login({ status, canResetPassword }: Props) {
                             </Button>
                         </div>
 
-                        <div className="text-center text-sm text-muted-foreground">
-                            Don't have an account?{' '}
-                            <TextLink href={register()} tabIndex={5}>
-                                Sign up
-                            </TextLink>
-                        </div>
+                        {canRegister && (
+                            <div className="text-center text-sm text-muted-foreground">
+                                Don't have an account?{' '}
+                                <TextLink href={register()} tabIndex={5}>
+                                    Sign up
+                                </TextLink>
+                            </div>
+                        )}
                     </>
                 )}
             </Form>

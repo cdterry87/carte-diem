@@ -26,6 +26,7 @@ return new class extends Migration
             $table->time('quiet_start')->nullable();
             $table->time('quiet_end')->nullable();
             $table->json('dismissed_notices')->nullable();
+            $table->boolean('is_demo')->default(false);
             $table->rememberToken();
             $table->timestamps();
         });

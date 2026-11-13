@@ -129,13 +129,20 @@ const privacyPoints = [
 ];
 
 export default function Welcome() {
-    const { auth, name, tagline, taglineLong } = usePage().props;
+    const { auth, name, tagline, taglineLong, canRegister } = usePage().props;
     const [household, setHousehold] = useState(households[0]);
     const signedIn = Boolean(auth.user);
-    const primaryHref = signedIn ? dashboard() : register();
+    // With sign-up closed for the demo site, the way in is the demo login on the login page.
+    const primaryHref = signedIn
+        ? dashboard()
+        : canRegister
+          ? register()
+          : login();
     const primaryLabel = signedIn
         ? 'Go to your lists'
-        : 'Create your first list';
+        : canRegister
+          ? 'Create your first list'
+          : 'Try the demo';
 
     return (
         <>
@@ -193,12 +200,14 @@ export default function Welcome() {
                                     >
                                         Log in
                                     </Link>
-                                    <Link
-                                        href={register()}
-                                        className="inline-flex min-h-10 items-center rounded-full bg-m-green px-4 text-sm font-medium text-m-on-green hover:opacity-90"
-                                    >
-                                        Sign up
-                                    </Link>
+                                    {canRegister && (
+                                        <Link
+                                            href={register()}
+                                            className="inline-flex min-h-10 items-center rounded-full bg-m-green px-4 text-sm font-medium text-m-on-green hover:opacity-90"
+                                        >
+                                            Sign up
+                                        </Link>
+                                    )}
                                 </>
                             )}
                         </nav>

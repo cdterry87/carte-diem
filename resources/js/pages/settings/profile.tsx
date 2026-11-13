@@ -25,7 +25,7 @@ export default function Profile({
     status?: string;
     timezones: string[];
 }) {
-    const { auth } = usePage<PageProps>().props;
+    const { auth, demo } = usePage<PageProps>().props;
 
     return (
         <>
@@ -78,9 +78,24 @@ export default function Profile({
                                     defaultValue={auth.user.email}
                                     name="email"
                                     required
+                                    readOnly={demo.isDemoUser}
+                                    aria-describedby={
+                                        demo.isDemoUser
+                                            ? 'email-demo-note'
+                                            : undefined
+                                    }
                                     autoComplete="username"
                                     placeholder="Email address"
                                 />
+                                {demo.isDemoUser && (
+                                    <p
+                                        id="email-demo-note"
+                                        className="text-sm text-muted-foreground"
+                                    >
+                                        The shared demo account keeps its email
+                                        address.
+                                    </p>
+                                )}
 
                                 <InputError
                                     className="mt-2"
@@ -143,7 +158,7 @@ export default function Profile({
                 </Form>
             </div>
 
-            <DeleteUser />
+            {!demo.isDemoUser && <DeleteUser />}
         </>
     );
 }

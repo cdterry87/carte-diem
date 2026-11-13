@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DemoLoginController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\DashboardNoticeController;
 use App\Http\Controllers\Web\HistoryController;
@@ -20,6 +21,8 @@ use Illuminate\Support\Facades\Route;
 Route::inertia('/', 'welcome')->name('home');
 
 Route::get('privacy', [LegalController::class, 'privacy'])->name('legal.privacy');
+
+Route::post('demo-login', DemoLoginController::class)->middleware(['guest', 'throttle:10,1'])->name('demo.login');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');

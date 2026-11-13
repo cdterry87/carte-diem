@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Http\Resources\UserResource;
 use App\Models\Household;
+use App\Support\DemoAccount;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -52,6 +53,11 @@ class HandleInertiaRequests extends Middleware
                     ->map(fn (Household $household) => ['type' => 'household', 'uuid' => $household->uuid, 'name' => $household->name])
                     ->all(),
             ] : [],
+            'demo' => [
+                'enabled' => DemoAccount::enabled(),
+                'isDemoUser' => (bool) $request->user()?->is_demo,
+            ],
+            'canRegister' => ! DemoAccount::enabled(),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

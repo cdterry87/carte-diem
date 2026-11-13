@@ -77,7 +77,34 @@ vendor/bin/sail npm run dev
 
 The app runs at http://localhost:8000, and local mail is at http://localhost:8025.
 
-The seed data adds two demo accounts in one household, `sam@cartediem.test` and `alex@cartediem.test`, both with the password `password`. Sam's household has a weekly list, a store, a staple, and a few weeks of purchases, so suggestions and spending have something to show.
+The seed data is the demo account from the `DEMO_*` settings in `.env`: by default `demo@example.com` with the password `password`, in a "Demo Household" with four months of weekly shops, current lists, staples, and spending.
+
+## Demo mode
+
+The public portfolio site runs in demo mode:
+
+```
+DEMO_MODE=true
+DEMO_NAME="Demo User"
+DEMO_HOUSEHOLD="Demo Household"
+DEMO_EMAIL=demo@example.com
+DEMO_PASSWORD=password
+DEMO_TIMEZONE="America/Chicago"
+```
+
+While it is on, sign-up is closed and the login page offers a one-click login as the demo user. The demo account cannot change its email or password, set up two-factor sign-in, delete itself, or send invitations, so visitors sharing it cannot lock each other out or email strangers. Everything else they change is undone by `demo:reset`, which runs daily in demo mode and can be run by hand:
+
+```bash
+vendor/bin/sail artisan demo:reset
+```
+
+Real accounts are created from the terminal, which works whether or not sign-up is open. It asks for anything not given as an option, and always asks for the password:
+
+```bash
+vendor/bin/sail artisan user:create --name="Pat Lee" --email=pat@example.com --timezone=America/Chicago
+```
+
+The tests and CI run with demo mode off, because the end-to-end tests sign up new users.
 
 `vendor/bin/sail up -d` also starts a queue worker, the scheduler, and the Reverb server. Reverb and the scheduler read code at startup, so restart them after changing their code.
 
