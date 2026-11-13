@@ -19,6 +19,7 @@ use DateTimeZone;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -73,7 +74,7 @@ class HouseholdController extends WebController
     {
         Gate::authorize('delete', $household);
 
-        $request->validate(['confirm_name' => ['required', 'string', 'in:'.$household->name]]);
+        $request->validate(['confirm_name' => ['required', 'string', Rule::in([$household->name])]]);
 
         $delete->handle($household, $this->actor($request));
 

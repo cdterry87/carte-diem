@@ -26,7 +26,10 @@ class NotificationController extends WebController
 
         $url = $model->data['url'] ?? null;
 
-        return is_string($url) && str_starts_with($url, '/') ? redirect($url) : back();
+        // Only paths on this site: "//host" and "/\host" would leave it.
+        $local = is_string($url) && preg_match('#^/(?![/\\\\])#', $url) === 1;
+
+        return $local ? redirect($url) : back();
     }
 
     public function readAll(Request $request): RedirectResponse

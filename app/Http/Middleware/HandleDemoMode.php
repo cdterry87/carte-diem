@@ -12,8 +12,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Demo mode closes sign-up, and keeps visitors sharing the demo account from locking each
- * other out or sending email to strangers. Everything else they change is undone by the
- * daily demo:reset.
+ * other out, sending email to strangers, or wrecking the demo household and account name
+ * that everyone else sees. Everything else they change is undone by the daily demo:reset.
  */
 class HandleDemoMode
 {
@@ -29,6 +29,10 @@ class HandleDemoMode
         'two-factor.regenerate-recovery-codes',
         'households.invitations.store',
         'lists.shares.store',
+        'households.update',
+        'households.destroy',
+        'households.leave',
+        'households.transfer',
     ];
 
     public function handle(Request $request, Closure $next): Response
@@ -50,8 +54,10 @@ class HandleDemoMode
         if ($user instanceof User && $user->is_demo) {
             $changesEmail = $route === 'profile.update' && $request->has('email')
                 && strtolower($request->string('email')->trim()->toString()) !== strtolower($user->email);
+            $changesName = $route === 'profile.update' && $request->has('name')
+                && $request->string('name')->trim()->toString() !== $user->name;
 
-            if ($changesEmail || in_array($route, self::LOCKED_FOR_DEMO_USER, true)) {
+            if ($changesEmail || $changesName || in_array($route, self::LOCKED_FOR_DEMO_USER, true)) {
                 Inertia::flash('toast', ['type' => 'error', 'message' => __('That is turned off for the shared demo account.')]);
 
                 return back();

@@ -71,8 +71,25 @@ describe('with demo mode on', function () {
             ->and($demo->two_factor_secret)->toBeNull()
             ->and(Hash::check('password', $demo->password))->toBeTrue();
 
-        $this->patch(route('profile.update'), ['name' => 'Renamed', 'email' => 'demo@example.com'])->assertSessionHasNoErrors();
-        expect($demo->refresh()->name)->toBe('Renamed');
+        $this->patch(route('profile.update'), ['name' => 'Renamed', 'email' => 'demo@example.com'])->assertRedirect();
+        expect($demo->refresh()->name)->toBe('Demo User');
+
+        $this->patch(route('profile.update'), ['name' => 'Demo User', 'email' => 'demo@example.com', 'timezone' => 'UTC'])->assertSessionHasNoErrors();
+    });
+
+    it('keeps visitors from wrecking the demo household for everyone else', function () {
+        $demo = demoUser();
+        $household = Household::query()->sole();
+        $this->actingAs($demo);
+
+        $this->patch(route('households.update', $household), ['name' => 'Something rude'])->assertRedirect();
+        expectConflictToast('demo account');
+        $this->delete(route('households.destroy', $household), ['confirm_name' => $household->name])->assertRedirect();
+        $this->post(route('households.leave', $household))->assertRedirect();
+
+        expect($household->fresh())->not->toBeNull()
+            ->and($household->fresh()->name)->toBe('Demo Household')
+            ->and($household->members()->whereKey($demo->id)->exists())->toBeTrue();
     });
 
     it('sends no invitations from the demo account', function () {

@@ -58,6 +58,12 @@ export default function Profile({
                                     defaultValue={auth.user.name}
                                     name="name"
                                     required
+                                    readOnly={demo.isDemoUser}
+                                    aria-describedby={
+                                        demo.isDemoUser
+                                            ? 'email-demo-note'
+                                            : undefined
+                                    }
                                     autoComplete="name"
                                     placeholder="Full name"
                                 />
@@ -92,8 +98,8 @@ export default function Profile({
                                         id="email-demo-note"
                                         className="text-sm text-muted-foreground"
                                     >
-                                        The shared demo account keeps its email
-                                        address.
+                                        The shared demo account keeps its name
+                                        and email address.
                                     </p>
                                 )}
 
