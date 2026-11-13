@@ -127,3 +127,157 @@ vendor/bin/sail npx playwright install chromium
 ```bash
 vendor/bin/sail npm run test:e2e
 ```
+
+## Deploying
+
+These steps are for a single Linux server running Nginx and PHP-FPM, such as one set up by Laravel Forge or by hand. The app needs:
+
+- PHP 8.3 or newer with the extensions Laravel needs, plus `pdo_mysql`
+- Composer
+- Node 24, for building the frontend
+- MySQL 8.0 or newer, because the schema uses generated columns
+- HTTPS
+- An SMTP service for verification, reset, and notification emails
+
+Demo mode needs no Redis and no WebSocket server.
+
+### 1. Install
+
+```bash
+git clone https://github.com/cdterry87/carte-diem.git && cd carte-diem
+```
+
+```bash
+composer install --no-dev --optimize-autoloader
+```
+
+```bash
+cp .env.example .env && php artisan key:generate
+```
+
+### 2. Configure `.env`
+
+Change at least these from the local defaults:
+
+```
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://your-domain.example
+LOG_LEVEL=warning
+
+DB_HOST=127.0.0.1
+DB_DATABASE=carte_diem
+DB_USERNAME=...
+DB_PASSWORD=...
+
+SESSION_SECURE_COOKIE=true
+
+MAIL_HOST=...
+MAIL_PORT=587
+MAIL_USERNAME=...
+MAIL_PASSWORD=...
+MAIL_FROM_ADDRESS=hello@your-domain.example
+
+LEGAL_ENTITY_NAME=...
+LEGAL_CONTACT_EMAIL=...
+LEGAL_EFFECTIVE_DATE=...
+```
+
+The `LEGAL_*` values fill in the privacy policy, and unset values show as placeholders.
+
+For the portfolio site, keep `DEMO_MODE=true` with the `DEMO_*` values from [Demo mode](#demo-mode). Live updates are then off, and `BROADCAST_CONNECTION` and the `REVERB_*` values are ignored.
+
+`APP_ENV=production` matters beyond error pages:
+
+- Passwords set through sign-up, reset, and `user:create` must be at least 12 characters, with mixed case, numbers, and symbols, and must not appear in known breaches.
+- HSTS is sent.
+- Destructive database commands such as `migrate:fresh` are refused.
+- Inertia's development tools are turned off.
+
+### 3. Build and migrate
+
+The build runs Artisan to generate the typed routes, so Composer dependencies and `.env` must be in place first:
+
+```bash
+npm ci && npm run build
+```
+
+```bash
+php artisan migrate --force
+```
+
+Create the demo account, or real accounts, or both:
+
+```bash
+php artisan demo:reset
+```
+
+```bash
+php artisan user:create
+```
+
+Cache the configuration, routes, and views:
+
+```bash
+php artisan optimize
+```
+
+### 4. Web server
+
+Point the site's document root at `public/` and serve it over HTTPS, with the standard Laravel Nginx configuration from the [deployment docs](https://laravel.com/docs/deployment#nginx).
+
+If TLS ends at a load balancer or CDN in front of the server, rather than at Nginx, add `$middleware->trustProxies(at: '*')` (or the proxy's addresses) in `bootstrap/app.php`. Otherwise the app cannot tell requests are secure, and it builds `http` links and skips HSTS.
+
+### 5. Background processes
+
+Add the scheduler to cron. It runs staple reminders, activity digests, and the daily `demo:reset`:
+
+```
+* * * * * cd /path/to/carte-diem && php artisan schedule:run >> /dev/null 2>&1
+```
+
+Keep a queue worker running with Supervisor, for email and notifications:
+
+```ini
+[program:carte-diem-queue]
+command=php /path/to/carte-diem/artisan queue:work --tries=3 --timeout=120 --max-time=3600
+user=forge
+autostart=true
+autorestart=true
+stopwaitsecs=130
+stdout_logfile=/path/to/carte-diem/storage/logs/queue.log
+```
+
+### 6. Live updates outside demo mode
+
+To run with live updates, set `DEMO_MODE=false`, `BROADCAST_CONNECTION=reverb`, and new random `REVERB_APP_ID`, `REVERB_APP_KEY`, and `REVERB_APP_SECRET` values. Then:
+
+- Set `REVERB_HOST` to the public host, `REVERB_PORT=443`, and `REVERB_SCHEME=https`. The `VITE_REVERB_*` values copy these, and are built into the frontend, so set them before `npm run build`.
+- Keep `php artisan reverb:start --host=127.0.0.1 --port=8080` running with Supervisor, like the queue worker.
+- Proxy WebSocket requests from Nginx to it, as in the [Reverb docs](https://laravel.com/docs/reverb#web-server).
+
+Reverb is free and runs on the same server.
+
+### Updating
+
+```bash
+git pull
+```
+
+```bash
+composer install --no-dev --optimize-autoloader
+```
+
+```bash
+npm ci && npm run build
+```
+
+```bash
+php artisan migrate --force && php artisan optimize
+```
+
+```bash
+php artisan queue:restart
+```
+
+If Reverb is running, also run `php artisan reverb:restart`. Workers and Reverb load code once at startup, so they need the restart to pick up changes.
