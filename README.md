@@ -92,7 +92,7 @@ DEMO_PASSWORD=password
 DEMO_TIMEZONE="America/Chicago"
 ```
 
-While it is on, sign-up is closed and the login page offers a one-click login as the demo user. Live updates are off too, whatever `BROADCAST_CONNECTION` says, so the site needs no Reverb server: pages refresh on request and the trip page polls. The demo account cannot change its email or password, set up two-factor sign-in, delete itself, or send invitations, so visitors sharing it cannot lock each other out or email strangers. Everything else they change is undone by `demo:reset`, which runs daily in demo mode and can be run by hand:
+While it is on, sign-up is closed and the login page offers a one-click login as the demo user. Live updates are off too, whatever `BROADCAST_CONNECTION` says, so the site needs no Reverb server: pages refresh on request and the trip page polls. The demo account cannot change its name, email, or password, set up two-factor sign-in, delete itself, send invitations, or rename, delete, leave, or hand over its household, so visitors sharing it cannot lock each other out, email strangers, or wreck what the next visitor sees. Everything else they change is undone by `demo:reset`, which runs daily in demo mode and can be run by hand:
 
 ```bash
 vendor/bin/sail artisan demo:reset

@@ -1,5 +1,12 @@
+@php
+    // Public pages are always light. Keep in step with isLightOnlyPage() in use-appearance.tsx.
+    $lightOnly = $page['component'] === 'welcome'
+        || str_starts_with($page['component'], 'legal/')
+        || (str_starts_with($page['component'], 'auth/') && $page['component'] !== 'auth/confirm-password');
+    $appearance = $lightOnly ? 'light' : ($appearance ?? 'system');
+@endphp
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" @class(['dark' => ($appearance ?? 'system') == 'dark'])>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-light-only="{{ $lightOnly ? 'true' : 'false' }}" @class(['dark' => $appearance === 'dark'])>
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,7 +16,7 @@
         {{-- Inline script to detect system dark mode preference and apply it immediately --}}
         <script>
             (function() {
-                const appearance = '{{ $appearance ?? "system" }}';
+                const appearance = '{{ $appearance }}';
 
                 if (appearance === 'system') {
                     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;

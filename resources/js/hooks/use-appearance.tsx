@@ -11,6 +11,19 @@ export type UseAppearanceReturn = {
 
 const listeners = new Set<() => void>();
 let currentAppearance: Appearance = 'system';
+let lightOnly = false;
+
+/**
+ * The public pages (landing, legal, and signed-out auth pages) are always light. Keep in step
+ * with the list in resources/views/app.blade.php, which avoids a dark flash on load.
+ */
+export function isLightOnlyPage(component: string): boolean {
+    return (
+        component === 'welcome' ||
+        component.startsWith('legal/') ||
+        (component.startsWith('auth/') && component !== 'auth/confirm-password')
+    );
+}
 
 const prefersDark = (): boolean => {
     if (typeof window === 'undefined') {
@@ -46,7 +59,7 @@ const applyTheme = (appearance: Appearance): void => {
         return;
     }
 
-    const isDark = isDarkMode(appearance);
+    const isDark = !lightOnly && isDarkMode(appearance);
 
     document.documentElement.classList.toggle('dark', isDark);
     document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
@@ -70,10 +83,27 @@ const mediaQuery = (): MediaQueryList | null => {
 
 const handleSystemThemeChange = (): void => applyTheme(currentAppearance);
 
+/**
+ * Called on every page visit, so leaving or entering a public page switches the theme.
+ */
+export function setLightOnlyPage(component: string): void {
+    const next = isLightOnlyPage(component);
+
+    if (next === lightOnly) {
+        return;
+    }
+
+    lightOnly = next;
+    applyTheme(currentAppearance);
+    notify();
+}
+
 export function initializeTheme(): void {
     if (typeof window === 'undefined') {
         return;
     }
+
+    lightOnly = document.documentElement.dataset.lightOnly === 'true';
 
     if (!localStorage.getItem('appearance')) {
         localStorage.setItem('appearance', 'system');
@@ -94,9 +124,14 @@ export function useAppearance(): UseAppearanceReturn {
         () => 'system',
     );
 
-    const resolvedAppearance: ResolvedAppearance = isDarkMode(appearance)
-        ? 'dark'
-        : 'light';
+    const forcedLight = useSyncExternalStore(
+        subscribe,
+        () => lightOnly,
+        () => false,
+    );
+
+    const resolvedAppearance: ResolvedAppearance =
+        !forcedLight && isDarkMode(appearance) ? 'dark' : 'light';
 
     const updateAppearance = (mode: Appearance): void => {
         currentAppearance = mode;

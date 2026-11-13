@@ -238,3 +238,54 @@ test('authenticated pages load without console errors', async ({ page }) => {
 
     expect(errors).toEqual([]);
 });
+
+test('form errors are announced with the field they belong to', async ({
+    page,
+}) => {
+    await page.goto('/login');
+    await page.getByLabel('Email address').fill(uniqueEmail('nobody'));
+    await page.getByLabel('Password', { exact: true }).fill('not-the-password');
+    await page.getByRole('button', { name: 'Log in', exact: true }).click();
+
+    const email = page.getByLabel('Email address');
+
+    await expect(email).toHaveAttribute('aria-invalid', 'true');
+    await expect(email).toHaveAccessibleDescription(/do not match/i);
+
+    await page.goto('/login');
+    await expect(page.getByLabel('Email address')).not.toHaveAttribute(
+        'aria-invalid',
+        'true',
+    );
+});
+
+test('public pages stay light while the app follows dark mode', async ({
+    page,
+}) => {
+    await page.emulateMedia({ colorScheme: 'dark' });
+
+    for (const path of ['/', '/login', '/privacy']) {
+        await page.goto(path);
+        await expect(page.locator('html')).not.toHaveClass(/\bdark\b/);
+    }
+
+    await register(page, 'Dana Dark', uniqueEmail('dark'));
+    await expect(page.locator('html')).toHaveClass(/\bdark\b/);
+
+    await page.goto('/');
+    await expect(page.locator('html')).not.toHaveClass(/\bdark\b/);
+});
+
+test('the app skip link moves past the sidebar', async ({ page, isMobile }) => {
+    test.skip(isMobile, 'Keyboard flows are for hardware keyboards');
+
+    await register(page, 'Sam Skip', uniqueEmail('skip'));
+    await page.keyboard.press('Tab');
+
+    const skip = page.getByRole('link', { name: 'Skip to content' });
+
+    await expect(skip).toBeFocused();
+    await expect(skip).toBeInViewport();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('#main')).toBeFocused();
+});

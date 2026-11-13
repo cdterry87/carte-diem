@@ -61,16 +61,25 @@ The rules Carte Diem follows, and why. Earlier versions of this file also covere
 - **Time zones:** registration saves the browser's zone, and users can change it. Dates display in the viewer's zone. Households have their own zone for shared figures.
 - **Two-factor sign-in** is optional, built on Fortify with code confirmation and recovery codes. Changing it needs a recent password.
 - **Unverified accounts** can still delete themselves.
+- **Security headers** forbid framing by other sites and content sniffing. There is no full content security policy, because the page relies on an inline theme script and Vite's dev server. HSTS is sent only over HTTPS in production.
+- **Reset links** are limited to 5 requests a minute per visitor, on top of Laravel's limit per account.
+- **Notification links** are followed only when they are paths on this site.
 - **The privacy policy** is a draft written to match the app's behavior, not legal advice. `LEGAL_*` settings fill in the entity, contact, and retention details, and unset values show as placeholders.
 
 ## Demo mode
 
 - **For the portfolio site.** `DEMO_MODE` closes sign-up and adds a one-click demo login. The demo credentials stay on the server and never reach the page.
-- **One shared account,** marked `is_demo`. It cannot change its email or password, set up two-factor sign-in, delete itself, or send invitations, and password reset links are never sent to it. Everything else is undone by `demo:reset`, which deletes the demo account and builds it again daily, ending any open demo sessions.
+- **One shared account,** marked `is_demo`. It cannot change its name, email, or password, set up two-factor sign-in, delete itself, send invitations, or rename, delete, leave, or transfer a household, and password reset links are never sent to it. Everything else is undone by `demo:reset`, which deletes the demo account and builds it again daily, ending any open demo sessions.
 - **No live updates.** Demo mode forces the null broadcaster and tells the browser not to connect, so the portfolio site runs without a Reverb server.
 - **Fixed sample data,** not random, so every reset looks the same: one household, three stores, sixteen weekly shops with rising prices on a few staples, and lists in progress.
 - **`demo:reset` never takes over a real account.** It refuses when a regular account already uses the demo email, and `user:create` keeps that email free.
 - **`user:create`** adds verified accounts from the terminal. It always asks for the password, so it never lands in shell history.
+
+## Appearance and accessibility
+
+- **Public pages are always light.** The landing page, the privacy policy, and the signed-out pages ignore the dark mode setting, which applies inside the app. The list is kept in two places, the page template and `use-appearance.tsx`, so the first paint is right.
+- **Form errors are tied to their fields.** `InputError` marks the field before it as invalid and adds itself to the field's description, so screen readers say which field failed.
+- **The app has a skip link** past the sidebar, and animations are cut short when the system asks for reduced motion.
 
 ## Technical choices
 
