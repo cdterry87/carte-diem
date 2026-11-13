@@ -42,8 +42,7 @@ export default function Login({ status, canResetPassword, demoLogin }: Props) {
                     </div>
                     <Button
                         type="button"
-                        variant="secondary"
-                        className="w-full"
+                        className="w-full cursor-pointer bg-black text-white hover:bg-black/80"
                         onClick={() => router.post(demo.login.url())}
                     >
                         Log in as the demo user
