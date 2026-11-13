@@ -18,6 +18,10 @@ use Inertia\Testing\AssertableInertia as Assert;
 /**
  * @param  array<int, string>  $names
  */
+// Purchase times are stored to the second, so a second ticking over between two purchases
+// would stretch their interval past the whole number of days the tests rely on.
+beforeEach(fn () => $this->freezeSecond());
+
 function bought(Model $owner, array $names, int $daysAgo, string $status = 'verified'): PurchaseTransaction
 {
     static $sequence = 0;
