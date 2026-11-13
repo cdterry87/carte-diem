@@ -11,7 +11,7 @@ This is a portfolio project. It is a working app with tests, not a hosted produc
 - **Quick add.** Type `2 lb apples` and the app reads the quantity, unit, and category. Adding something already checked off brings it back instead of duplicating it.
 - **Households and sharing.** Lists belong to a person or a household. Households have invitations and owner, admin, and member roles. A single list can also be shared with someone outside the household, as an editor or viewer, without exposing anything else.
 - **Shopping trips.** Start a trip, check items off in store aisle order, and finish. What you bought goes into history, and anything partly bought stays on the list with the remainder.
-- **Live updates.** Everyone on a list or trip sees changes as they happen, through Laravel Reverb. The app keeps working without it.
+- **Live updates.** Everyone on a list or trip sees changes as they happen, through Laravel Reverb. The app keeps working without it, and demo mode turns it off.
 - **Purchases and spending.** Trips become purchases, and purchases can be added by hand. Spending is shown by month, store, and category, with month comparisons and price history per product.
 - **Suggestions and staples.** Suggestions come from purchase history and always say why, such as "Purchased on 5 of your last 7 trips". Staples remind you on a schedule, held back during quiet hours.
 - **Notifications.** An in-app inbox, per-type email preferences, and batched digests of list changes.
@@ -92,7 +92,7 @@ DEMO_PASSWORD=password
 DEMO_TIMEZONE="America/Chicago"
 ```
 
-While it is on, sign-up is closed and the login page offers a one-click login as the demo user. The demo account cannot change its email or password, set up two-factor sign-in, delete itself, or send invitations, so visitors sharing it cannot lock each other out or email strangers. Everything else they change is undone by `demo:reset`, which runs daily in demo mode and can be run by hand:
+While it is on, sign-up is closed and the login page offers a one-click login as the demo user. Live updates are off too, whatever `BROADCAST_CONNECTION` says, so the site needs no Reverb server: pages refresh on request and the trip page polls. The demo account cannot change its email or password, set up two-factor sign-in, delete itself, or send invitations, so visitors sharing it cannot lock each other out or email strangers. Everything else they change is undone by `demo:reset`, which runs daily in demo mode and can be run by hand:
 
 ```bash
 vendor/bin/sail artisan demo:reset

@@ -1,4 +1,4 @@
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import { getEcho } from '@/lib/echo';
 
@@ -11,7 +11,8 @@ const DEBOUNCE_MS = 250;
 /**
  * Refetches the given props when the channel reports a change, and after a reconnect
  * in case events were missed. Events are only hints: the server stays authoritative.
- * Returns whether live updates are currently connected.
+ * Returns whether live updates are currently connected. Does nothing when the server has
+ * live updates turned off, as in demo mode.
  */
 export function useLiveReload(
     channel: string,
@@ -20,9 +21,10 @@ export function useLiveReload(
 ): boolean {
     const [connected, setConnected] = useState(false);
     const onlyRef = useRef(only);
+    const { liveUpdates } = usePage().props;
 
     useEffect(() => {
-        const echo = getEcho();
+        const echo = liveUpdates ? getEcho() : null;
 
         if (!echo) {
             return;
@@ -82,7 +84,7 @@ export function useLiveReload(
             });
             echo.leave(channel);
         };
-    }, [channel, events]);
+    }, [channel, events, liveUpdates]);
 
     return connected;
 }

@@ -19,6 +19,7 @@ declare module '@inertiajs/core' {
             sidebarOpen: boolean;
             demo: { enabled: boolean; isDemoUser: boolean };
             canRegister: boolean;
+            liveUpdates: boolean;
             [key: string]: unknown;
         };
     }

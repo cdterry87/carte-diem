@@ -87,7 +87,28 @@ describe('with demo mode on', function () {
         Notification::assertNothingSent();
         expect($household->invitations()->count())->toBe(0);
     });
+
+    it('turns live updates off, so the site needs no WebSocket server', function () {
+        config(['broadcasting.default' => 'reverb']);
+
+        $this->get(route('login'))->assertInertia(fn (Assert $page) => $page->where('liveUpdates', false));
+    });
 });
+
+it('broadcasts nothing in demo mode, whatever BROADCAST_CONNECTION says', function (string $demoMode, string $broadcaster) {
+    $previous = [$_ENV['DEMO_MODE'] ?? null, $_ENV['BROADCAST_CONNECTION'] ?? null];
+    $_ENV['DEMO_MODE'] = $demoMode;
+    $_ENV['BROADCAST_CONNECTION'] = 'reverb';
+
+    try {
+        expect((require config_path('broadcasting.php'))['default'])->toBe($broadcaster);
+    } finally {
+        [$_ENV['DEMO_MODE'], $_ENV['BROADCAST_CONNECTION']] = $previous;
+    }
+})->with([
+    'demo mode on' => ['true', 'null'],
+    'demo mode off' => ['false', 'reverb'],
+]);
 
 describe('with demo mode off', function () {
     beforeEach(fn () => config(['demo.mode' => false]));
@@ -101,6 +122,12 @@ describe('with demo mode off', function () {
             ->where('canRegister', true));
         $this->post(route('demo.login'))->assertNotFound();
         $this->assertGuest();
+    });
+
+    it('keeps live updates on when Reverb is configured', function () {
+        config(['broadcasting.default' => 'reverb']);
+
+        $this->get(route('login'))->assertInertia(fn (Assert $page) => $page->where('liveUpdates', true));
     });
 });
 

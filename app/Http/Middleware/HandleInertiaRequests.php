@@ -58,6 +58,7 @@ class HandleInertiaRequests extends Middleware
                 'isDemoUser' => (bool) $request->user()?->is_demo,
             ],
             'canRegister' => ! DemoAccount::enabled(),
+            'liveUpdates' => ! DemoAccount::enabled() && config('broadcasting.default') === 'reverb',
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

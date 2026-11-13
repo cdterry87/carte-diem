@@ -13,9 +13,12 @@ return [
     |
     | Supported: "reverb", "pusher", "ably", "mercure", "redis", "log", "null"
     |
+    | Demo mode turns broadcasting off, so the portfolio site needs no
+    | WebSocket server. Pages fall back to refreshing on request.
+    |
     */
 
-    'default' => env('BROADCAST_CONNECTION', 'null'),
+    'default' => env('DEMO_MODE', false) ? 'null' : env('BROADCAST_CONNECTION', 'null'),
 
     /*
     |--------------------------------------------------------------------------
