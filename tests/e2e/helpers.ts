@@ -59,7 +59,11 @@ export async function register(
     await page.getByLabel('Password', { exact: true }).fill('correct-horse-9');
     await page.getByLabel('Confirm password').fill('correct-horse-9');
     await page.getByRole('button', { name: /create account/i }).click();
-    await expect(page).toHaveURL(/verify-email|email\/verify/);
+    // Sign-up hashes the password and sends the verification email before it redirects,
+    // which can take longer than the default 5 seconds on a busy CI runner.
+    await expect(page).toHaveURL(/verify-email|email\/verify/, {
+        timeout: 15000,
+    });
 
     await page.goto(await mailLink(page, email, /https?:\/\/\S*verify\S+/));
     await expect(page).toHaveURL(/dashboard/);
